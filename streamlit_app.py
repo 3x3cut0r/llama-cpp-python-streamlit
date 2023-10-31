@@ -19,11 +19,11 @@ with st.sidebar:
     st.title("Model Settings")
     user_content = ""
     stream = st.toggle("stream results?", value=True)
-    max_tokens = st.number_input("max_tokens", value=256, min_value=32, max_value=2048, step=1)
-    temperature = st.number_input("temperature", value=0.2, min_value=0.0, max_value=1.0, step=0.05)
+    max_tokens = st.number_input("max_tokens", value=256, min_value=16, max_value=2048, step=1)
+    temperature = st.number_input("temperature", value=0.2, min_value=0.01, max_value=1.99, step=0.05)
     top_p = st.number_input("top_p", value=0.95, min_value=0.0, max_value=1.0, step=0.05)
-    top_k = st.number_input("top_k", value=40, min_value=1, max_value=1024, step=1)
-    repeat_penalty = st.number_input("repeat_penalty", value=1.1, min_value=1.1, max_value=2.0, step=0.05)
+    top_k = st.number_input("top_k", value=40, min_value=1, max_value=200, step=1)
+    repeat_penalty = st.number_input("repeat_penalty", value=1.1, min_value=1.0, max_value=1.5, step=0.05)
     system_content = st.text_area("system_content", value="You are a helpful assistant.")
     stop = ["STOPGENERATING"]
           
