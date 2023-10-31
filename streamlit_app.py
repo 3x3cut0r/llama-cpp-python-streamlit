@@ -56,14 +56,15 @@ def send_request():
     try:
         s = requests.Session()
         headers = None
-        with s.post(
-                config["api_url"] + "/v1/chat/completions",
-                json=json_data,
-                headers=headers,
-                stream=stream,
-                timeout=240,
-                verify=False
-            ) as response:
+        with s.post(config["api_url"] + "/v1/chat/completions",
+            json=json_data,
+            headers=headers,
+            stream=stream,
+            timeout=240,
+            verify=False
+        ) as response:
+          
+            # set response title
             response_title.markdown("Answer:\n")
             
             # if stream is True
