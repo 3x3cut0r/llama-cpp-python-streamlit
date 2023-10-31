@@ -1,2 +1,4 @@
 json
 requests
+streamlit
+urllib3
