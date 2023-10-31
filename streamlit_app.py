@@ -89,7 +89,7 @@ def send_request():
                                 if 'delta' in chunk_dict['choices'][0]:
                                     if 'content' in chunk_dict['choices'][0]['delta']:
                                         context = context + str(chunk_dict['choices'][0]['delta']['content'])
-                                        response_placeholder.markdown(context)
+                                        response_content.markdown(context)
                         except json.JSONDecodeError:
                             (f'Ungültiger JSON-String: {chunk}')
 
@@ -99,7 +99,7 @@ def send_request():
                 try:
                     if response.ok:
                         context = response.json()['choices'][0]['message']['content']
-                        response_placeholder.markdown(context)
+                        response_content.markdown(context)
                     else:
                         raise Exception(f'Error: {response.text}')
                 except json.JSONDecodeError:
@@ -121,15 +121,20 @@ def stop_request():
         st.error(str(e))
 
 # GUI
+question_title = st.empty()
+question_content = st.empty()
 response_title = st.empty()
-response_placeholder = st.empty()
+response_content = st.empty()
 
-col1, col2 = st.columns(2)
-with col1:
-    user_content = st.text_input(label="Enter your message", value="", label_visibility="collapsed", placeholder="Enter your message")
-with col2:
-    generate_button = st.button('Generate', key='generate_button')
+with st.form("Prompt Form", clear_on_submit=True):
+    col1, col2 = st.columns(2)
+    with col1:
+        user_content = st.text_input(label="Enter your message", value="", label_visibility="collapsed", placeholder="Enter your message")
+    with col2:
+        generate_button = st.form_submit_button('Generate')
 
-if generate_button:
-    with st.spinner('Generating response...'):
-        send_request()
+    if generate_button:
+        question_title.markdown("Question:\n")
+        question_content.markdown(user_content)
+        with st.spinner('Generating response...'):
+            send_request()
