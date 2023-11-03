@@ -5,16 +5,16 @@ import src.header as header
 import urllib3
 urllib3.disable_warnings()
 
-# Laden Sie die Konfigurationsdaten
+# load config-file
 with open("src/config.json", "r", encoding="utf-8") as file:
     config = json.load(file)
 
-# Header
+# render header
 header.render("Model: Llama-2-7b-Chat-GGUF")
 
-context = ""
+context = []
 
-# Sidebar
+# render sidebar
 with st.sidebar:
     st.title("Model Settings")
     user_content = ""
@@ -26,8 +26,43 @@ with st.sidebar:
     repeat_penalty = st.number_input("repeat_penalty", value=1.1, min_value=1.0, max_value=1.5, step=0.05)
     system_content = st.text_area("system_content", value="You are a helpful assistant.")
     stop = ["STOPGENERATING"]
+
+# append Context to context list
+def append_context(ctx): # ctx = python dict
+    global context
+    
+    # rename ctx['choices'][0]['delta'] -> ctx['choices'][0]['message'] if ctx = chunk
+    if 'choices' in ctx and ctx['choices']:
+        if 'delta' in ctx['choices'][0]:
+            ctx['choices'][0]['message'] = ctx['choices'][0].pop('delta')
+    
+    # check if 'id', 'created' and 'choices' exist
+    if all(key in ctx for key in ('id', 'created', 'choices')):
+
+        # check if ctx is already last element in context
+        if context != [] and context[-1]['id'] == ctx['id'] and context[-1]['created'] == ctx['created']:
           
-# Send Request to API
+            # append chunk 'content' to existing chunk 'content'
+            if 'choices' in ctx and ctx['choices']:
+                if 'message' in ctx['choices'][0]:
+                    if 'content' in ctx['choices'][0]['message']:
+                        context[-1]['choices'][0]['message']['content'] += ctx['choices'][0]['message'].get('content', '')
+        else:
+          
+            # append ctx to context list
+            if 'choices' in ctx and ctx['choices']:
+                if 'message' in ctx['choices'][0]:
+                    if 'content' in ctx['choices'][0]['message']:
+                        context.append(ctx)
+    else:
+        raise Exception(f'Error: no context to append')
+
+    # print context
+    # todo: replace with context dict print function
+    if context != []:
+        response_content.markdown(context[0]['choices'][0]['message']['content'])          
+          
+# send request to API
 def send_request():
     global context
   
@@ -46,7 +81,7 @@ def send_request():
                 "role": "system"
             },
             {
-                "content": user_content,
+                "content": "What is the Capital of France?",
                 "role": "user"
             }
         ]
@@ -69,9 +104,11 @@ def send_request():
             
             # if stream is True
             if stream:
+              
                 # store chunks into context
                 for chunk in response.iter_lines(chunk_size=None, decode_unicode=True):
                     if chunk:
+
                         # skip [DONE] message
                         if chunk.startswith("data: [DONE]"):
                             continue
@@ -85,11 +122,7 @@ def send_request():
                         # add chunks content to the context
                         try:
                             chunk_dict = json.loads(chunk)
-                            if 'choices' in chunk_dict:
-                                if 'delta' in chunk_dict['choices'][0]:
-                                    if 'content' in chunk_dict['choices'][0]['delta']:
-                                        context = context + str(chunk_dict['choices'][0]['delta']['content'])
-                                        response_content.markdown(context)
+                            append_context(chunk_dict)
                         except json.JSONDecodeError:
                             (f'Ungültiger JSON-String: {chunk}')
 
@@ -98,8 +131,7 @@ def send_request():
                 # add complete content to the context
                 try:
                     if response.ok:
-                        context = response.json()['choices'][0]['message']['content']
-                        response_content.markdown(context)
+                        append_context(response.json())
                     else:
                         raise Exception(f'Error: {response.text}')
                 except json.JSONDecodeError:
@@ -108,7 +140,7 @@ def send_request():
     except Exception as e:
         st.error(str(e))
 
-# Stop Request
+# stop request
 def stop_request():
     # send stop request to endpoint
     try:
@@ -120,7 +152,8 @@ def stop_request():
     except Exception as e:
         st.error(str(e))
 
-# GUI
+# render gui
+# todo: replace with context dict
 question_title = st.empty()
 question_content = st.empty()
 response_title = st.empty()
