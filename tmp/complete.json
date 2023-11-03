@@ -1,0 +1,21 @@
+{
+  "id": "chatcmpl-49d596b1-ea52-4054-bc2d-be39d3d4c5d4",
+  "object": "chat.completion",
+  "created": 1699000689,
+  "model": "/model/llama-2-7b-chat.Q2_K.gguf",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": " Ah, an excellent question! The capital of France is none other than Paris itself! 🇫🇷 Paris is a beautiful and vibrant city located in the northern central part of France. It's known for its stunning architecture, art museums, fashion, and cuisine. The Eiffel Tower, the Louvre Museum, and the Notre-Dame Cathedral are just a few of the many iconic landmarks that can be found in Paris. 🗼️\nI hope that helps! Let me know if you have any other questions. 😊"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 37,
+    "completion_tokens": 129,
+    "total_tokens": 166
+  }
+}
