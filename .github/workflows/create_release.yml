@@ -23,7 +23,7 @@ jobs:
       - name: Compress project
         run: |
           zip -r "Source code.zip" . --exclude "${{ github.workspace }}/.git/*" "${{ github.workspace }}/.github/*"
-          tar -czvf "Source code.tar.gz" . --exclude "${{ github.workspace }}/.git/*" "${{ github.workspace }}/.github/*"
+          tar -czvf "Source code.tar.gz" . --exclude="${{ github.workspace }}/.git/*" --exclude="${{ github.workspace }}/.github/*"
 
       - name: Get Tag Message
         id: tagmsg
