@@ -22,8 +22,8 @@ jobs:
 
       - name: Compress project
         run: |
-          zip -r "Source code.zip" .
-          tar -czvf "Source code.tar.gz" .
+          zip -r "Source code.zip" . -x ".github*"
+          tar -czvf "Source code.tar.gz" . --exclude=".github*"
 
       - name: Get Tag Message
         id: tagmsg
