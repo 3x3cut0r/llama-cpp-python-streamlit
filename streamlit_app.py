@@ -23,7 +23,7 @@ if 'context' in st.session_state:
 
 # render message-text_input + generate-submit_button
 with st.form("Prompt Form", clear_on_submit=True):
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([2,1])
     
     with col1:
         user_content = st.text_input(label="Enter your message", value="", label_visibility="collapsed", placeholder="Enter your message")
