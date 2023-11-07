@@ -1,173 +1,39 @@
-import json
-import requests
 import streamlit as st
 import src.header as header
-import urllib3
-urllib3.disable_warnings()
-
-# load config-file
-with open("src/config.json", "r", encoding="utf-8") as file:
-    config = json.load(file)
+import src.sidebar as sidebar
+import src.request as request
+import src.context as context
 
 # render header
-header.render("Model: Llama-2-7b-Chat-GGUF")
-
-context = []
+header.render()
 
 # render sidebar
-with st.sidebar:
-    st.title("Model Settings")
-    user_content = ""
-    stream = st.toggle("stream results?", value=True)
-    max_tokens = st.number_input("max_tokens", value=256, min_value=16, max_value=2048, step=1)
-    temperature = st.number_input("temperature", value=0.2, min_value=0.01, max_value=1.99, step=0.05)
-    top_p = st.number_input("top_p", value=0.95, min_value=0.0, max_value=1.0, step=0.05)
-    top_k = st.number_input("top_k", value=40, min_value=1, max_value=200, step=1)
-    repeat_penalty = st.number_input("repeat_penalty", value=1.1, min_value=1.0, max_value=1.5, step=0.05)
-    system_content = st.text_area("system_content", value="You are a helpful assistant.")
-    stop = ["STOPGENERATING"]
+(endpoint, user_content, stream, max_tokens, temperature, top_p, top_k, repeat_penalty, stop, system_content) = sidebar.render()        
 
-# append Context to context list
-def append_context(ctx): # ctx = python dict
-    global context
-    
-    # rename ctx['choices'][0]['delta'] -> ctx['choices'][0]['message'] if ctx = chunk
-    if 'choices' in ctx and ctx['choices']:
-        if 'delta' in ctx['choices'][0]:
-            ctx['choices'][0]['message'] = ctx['choices'][0].pop('delta')
-    
-    # check if 'id', 'created' and 'choices' exist
-    if all(key in ctx for key in ('id', 'created', 'choices')):
+# initialize context in session state if not present
+if 'context' not in st.session_state:
+    st.session_state['context'] = []
 
-        # check if ctx is already last element in context
-        if context != [] and context[-1]['id'] == ctx['id'] and context[-1]['created'] == ctx['created']:
-          
-            # append chunk 'content' to existing chunk 'content'
-            if 'choices' in ctx and ctx['choices']:
-                if 'message' in ctx['choices'][0]:
-                    if 'content' in ctx['choices'][0]['message']:
-                        context[-1]['choices'][0]['message']['content'] += ctx['choices'][0]['message'].get('content', '')
-        else:
-          
-            # append ctx to context list
-            if 'choices' in ctx and ctx['choices']:
-                if 'message' in ctx['choices'][0]:
-                    if 'content' in ctx['choices'][0]['message']:
-                        context.append(ctx)
-    else:
-        raise Exception(f'Error: no context to append')
+# render content_container
+content_container = st.empty()
 
-    # print context
-    # todo: replace with context dict print function
-    if context != []:
-        response_content.markdown(context[0]['choices'][0]['message']['content'])          
-          
-# send request to API
-def send_request():
-    global context
-  
-    # endpoint = /v1/chat/completions
-    json_data={
-        "max_tokens": max_tokens,
-        "temperature": temperature,
-        "top_p": top_p,
-        "top_k": top_k,
-        "repeat_penalty": repeat_penalty,
-        "stop": stop,
-        "stream": stream,
-        "messages": [
-            {
-                "content": system_content,
-                "role": "system"
-            },
-            {
-                "content": "What is the Capital of France?",
-                "role": "user"
-            }
-        ]
-    }
+# render context
+if 'context' in st.session_state:
+    context.render(content_container)
 
-    # send json_data to endpoint
-    try:
-        s = requests.Session()
-        headers = None
-        with s.post(config["api_url"] + "/v1/chat/completions",
-            json=json_data,
-            headers=headers,
-            stream=stream,
-            timeout=240,
-            verify=False
-        ) as response:
-          
-            # set response title
-            response_title.markdown("Answer:\n")
-            
-            # if stream is True
-            if stream:
-              
-                # store chunks into context
-                for chunk in response.iter_lines(chunk_size=None, decode_unicode=True):
-                    if chunk:
-
-                        # skip [DONE] message
-                        if chunk.startswith("data: [DONE]"):
-                            continue
-                        # remove "data: "-prefix, if present
-                        elif chunk.startswith("data: "):
-                            chunk = chunk[6:]
-                        # skip ping messages
-                        elif chunk.startswith(": ping"):
-                            continue
-                        
-                        # add chunks content to the context
-                        try:
-                            chunk_dict = json.loads(chunk)
-                            append_context(chunk_dict)
-                        except json.JSONDecodeError:
-                            (f'Ungültiger JSON-String: {chunk}')
-
-            # if stream is False
-            else:
-                # add complete content to the context
-                try:
-                    if response.ok:
-                        append_context(response.json())
-                    else:
-                        raise Exception(f'Error: {response.text}')
-                except json.JSONDecodeError:
-                    (f'Ungültiger JSON-String: {chunk}')
-
-    except Exception as e:
-        st.error(str(e))
-
-# stop request
-def stop_request():
-    # send stop request to endpoint
-    try:
-        requests.post(
-                config["api_url"] + "/v1/chat/completions",
-                json={"messages": "STOPGENERATING"},
-                verify=False
-            )
-    except Exception as e:
-        st.error(str(e))
-
-# render gui
-# todo: replace with context dict
-question_title = st.empty()
-question_content = st.empty()
-response_title = st.empty()
-response_content = st.empty()
-
+# render message-text_input + generate-submit_button
 with st.form("Prompt Form", clear_on_submit=True):
     col1, col2 = st.columns(2)
+    
     with col1:
         user_content = st.text_input(label="Enter your message", value="", label_visibility="collapsed", placeholder="Enter your message")
+    
     with col2:
         generate_button = st.form_submit_button('Generate')
 
     if generate_button:
-        question_title.markdown("Question:\n")
-        question_content.markdown(user_content)
+        context.append_question(user_content)
+        context.render(content_container)
+        
         with st.spinner('Generating response...'):
-            send_request()
+            request.send(endpoint, user_content, stream, max_tokens, temperature, top_p, top_k, repeat_penalty, stop, system_content, content_container)

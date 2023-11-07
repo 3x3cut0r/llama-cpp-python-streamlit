@@ -1,0 +1,22 @@
+{
+  "/v1/chat/completions": {
+    "messages": [
+      {
+        "content": "You are a helpful assistant.",
+        "role": "system"
+      },
+      {
+        "content": "What is the capital of France?",
+        "role": "user"
+      }
+    ]
+  },
+  "/v1/completions": {
+    "prompt": "\n\n### Instructions:\nWhat is the capital of France?\n\n### Response:\n",
+    "stop": ["\n", "###"]
+  },
+  "/completions": {
+    "prompt": "\n\n### Instructions:\nWhat is the capital of France?\n\n### Response:\n",
+    "stop": ["\n", "###"]
+  }
+}
