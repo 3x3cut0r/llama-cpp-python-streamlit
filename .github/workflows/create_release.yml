@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
+        id: checkout
         uses: actions/checkout@v4
 
       - name: Compress project
@@ -25,29 +26,12 @@ jobs:
           git archive -o "Source code.zip" main
           git archive -o "Source code.tar.gz" main
 
-      - name: Get Tag Message
-        id: tagmsg
-        run: |
-          TAG_MESSAGE=$(git tag -l --format='%(contents)' ${{ github.ref_name }})
-          echo "::set-output name=body::$TAG_MESSAGE"
-          
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }} # This token is provided by Actions, you do not need to create your own token
-        with:
-          release_name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-          body: ${{ steps.tagmsg.outputs.body }}
-
       - name: Upload Release Asset (zip)
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.checkout.outputs.upload_url }}
           asset_path: ${{ github.workspace }}Source code.zip
           asset_name: Source code.zip
           asset_content_type: application/zip
@@ -57,7 +41,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.checkout.outputs.upload_url }}
           asset_path: ${{ github.workspace }}Source code.tar.gz
           asset_name: Source code.tar.gz
           asset_content_type: application/gzip
