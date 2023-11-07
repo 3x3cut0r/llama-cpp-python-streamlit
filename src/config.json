@@ -1,4 +1,4 @@
 {
-  "api_url": "https://localhost:8000",
+  "api_url": "http://localhost:8000",
   "page_title": "Llama-2-7b-Chat"
 }
