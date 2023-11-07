@@ -1,4 +1,5 @@
 {
   "api_url": "http://localhost:8000",
-  "page_title": "Llama-2-7b-Chat"
+  "page_title": "Llama-2-7b-Chat",
+  "n_ctx": 2048
 }

@@ -1,38 +1,55 @@
 from datetime import datetime
 import streamlit as st
-
+    
 # render context in app
 def render(container): # container = st.container()
     container.empty()
     
     with container.container():
-    
-        for element in st.session_state['context']:
-          
-            # if question
-            if 'question' in element:
-                q = element['question']
-                st.markdown(
-                    f"""
-                    <p style="
-                        background-color: #343541;
-                        color: #ececf1;
-                        margin: 0px;
-                        padding: 20px;
-                    ">
-                        {q}
-                    </p>
-                    """,
-                    unsafe_allow_html=True,
-                )
-
-            # if response   
-            elif 'choices' in element and element['choices']:
+        if st.session_state['context'] != []:
+            for element in st.session_state['context']:
               
-                # if /v1/chat/completions endpoint
-                if 'message' in element['choices'][0]:
-                    if 'content' in element['choices'][0]['message']:
-                        c = element['choices'][0]['message']['content']
+                # if question
+                if 'question' in element:
+                    q = element['question']
+                    st.markdown(
+                        f"""
+                        <p style="
+                            background-color: #343541;
+                            color: #ececf1;
+                            margin: 0px;
+                            padding: 20px;
+                        ">
+                            {q}
+                        </p>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+                # if response   
+                elif 'choices' in element and element['choices']:
+                  
+                    # if /v1/chat/completions endpoint
+                    if 'message' in element['choices'][0]:
+                        if 'content' in element['choices'][0]['message']:
+                            c = element['choices'][0]['message']['content']
+                            st.markdown(
+                                f"""
+                                <p style="
+                                    background-color: #444654;
+                                    color: #ced2d8;
+                                    margin: 0px;
+                                    padding: 20px;
+                                ">
+                                    {c}
+                                </p>
+                                """,
+                                unsafe_allow_html=True,
+                            )
+                    
+                    # if /v1/completions entpoint
+                    elif 'text' in element['choices'][0]:
+                        c = element['choices'][0]['text']
                         st.markdown(
                             f"""
                             <p style="
@@ -46,31 +63,14 @@ def render(container): # container = st.container()
                             """,
                             unsafe_allow_html=True,
                         )
-                
-                # if /v1/completions entpoint
-                elif 'text' in element['choices'][0]:
-                    c = element['choices'][0]['text']
-                    st.markdown(
-                        f"""
-                        <p style="
-                            background-color: #444654;
-                            color: #ced2d8;
-                            margin: 0px;
-                            padding: 20px;
-                        ">
-                            {c}
-                        </p>
-                        """,
-                        unsafe_allow_html=True,
-                    )
     
-# append question to context
-def append_question(question): # question = string
-    if st.session_state['context'] == [] or 'question' not in st.session_state['context'][-1] or st.session_state['context'][-1]['question'] != question:
+# append user_content to context
+def append_question(user_content): # user_content = question = string
+    if st.session_state['context'] == [] or 'question' not in st.session_state['context'][-1] or st.session_state['context'][-1]['question'] != user_content:
         now = int(datetime.now().timestamp())
         st.session_state['context'].append({
             "id": 0, # todo: add question id here
-            "question": question,
+            "question": user_content,
             "created": now
         })
 
@@ -116,3 +116,53 @@ def append(ctx): # ctx = python dict
     # raise error if no context was found
     else:
         raise Exception(f'Error: no context to append or wrong api endpoint\n\nmessage: {ctx}')
+
+# return message from context
+def get_message(ctx_element):
+    # if question
+    if 'question' in ctx_element:
+        return "User: " + ctx_element['question'] + "\n"
+
+    # if response   
+    elif 'choices' in ctx_element and ctx_element['choices']:
+      
+        # if /v1/chat/completions endpoint
+        if 'message' in ctx_element['choices'][0]:
+            if 'content' in ctx_element['choices'][0]['message']:
+                return "System: " + ctx_element['choices'][0]['message']['content'] + "\n"
+
+        # if /v1/completions entpoint
+        elif 'text' in ctx_element['choices'][0]:
+            return "System: " + ctx_element['choices'][0]['text'] + "\n"
+
+# return context history    
+def get_messages_history(system_content):
+    history = ""
+    
+    messages = [{
+        "role": "system",
+        "content": system_content
+    }]
+    
+    if st.session_state['context'] != []:
+      
+        # if context is enabled
+        if st.session_state['enable_context']:
+            for ctx_element in st.session_state['context']:
+                history += get_message(ctx_element)
+
+            # cut history to n_ctx length of llama.cpp server
+            # todo: cut complete user and/or system message instead of cutting somewhere in the middle
+            n_ctx = st.session_state['n_ctx']
+            history = (history[-n_ctx:]) if len(history) >= n_ctx else history
+                
+        # if context is disabled
+        else:
+            history += get_message(st.session_state['context'][-1])
+
+    messages.append({
+        "role": "user",
+        "content": history
+    })
+    
+    return messages

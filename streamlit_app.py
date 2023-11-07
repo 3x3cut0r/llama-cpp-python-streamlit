@@ -1,5 +1,6 @@
 import streamlit as st
 import src.header as header
+import src.session as session
 import src.sidebar as sidebar
 import src.request as request
 import src.context as context
@@ -7,12 +8,11 @@ import src.context as context
 # render header
 header.render()
 
-# render sidebar
-(endpoint, user_content, stream, max_tokens, temperature, top_p, top_k, repeat_penalty, stop, system_content) = sidebar.render()        
+# load config
+session.load()
 
-# initialize context in session state if not present
-if 'context' not in st.session_state:
-    st.session_state['context'] = []
+# render sidebar
+sidebar.render()        
 
 # render content_container
 content_container = st.empty()
@@ -36,4 +36,4 @@ with st.form("Prompt Form", clear_on_submit=True):
         context.render(content_container)
         
         with st.spinner('Generating response...'):
-            request.send(endpoint, user_content, stream, max_tokens, temperature, top_p, top_k, repeat_penalty, stop, system_content, content_container)
+            request.send(user_content, content_container)

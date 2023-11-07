@@ -6,54 +6,46 @@ import urllib3
 
 urllib3.disable_warnings()
 
-# load config-file
-with open("src/config.json", "r", encoding="utf-8") as file:
-    config = json.load(file)
-
 # send request to API
-def send(endpoint, user_content, stream, max_tokens, temperature, top_p, top_k, repeat_penalty, stop, system_content, content_container):
+def send(user_content, content_container):
+    
+    # create static json_data for all requests
     json_data = {
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-            "top_p": top_p,
-            "top_k": top_k,
-            "repeat_penalty": repeat_penalty,
-            "stop": stop,
-            "stream": stream
+            "max_tokens": st.session_state['max_tokens'],
+            "temperature": st.session_state['temperature'],
+            "top_p": st.session_state['top_p'],
+            "top_k": st.session_state['top_k'],
+            "repeat_penalty": st.session_state['repeat_penalty'],
+            "stop": st.session_state['stop'],
+            "stream": st.session_state['stream']
         }
     
+    # add endpoint specific json_data
     # endpoint = /v1/chat/completions
-    if endpoint == "/v1/chat/completions":
-        json_data['messages'] = [
-                {
-                    "content": system_content,
-                    "role": "system"
-                },
-                {
-                    "content": user_content,
-                    "role": "user"
-                }
-            ]
+    if st.session_state['endpoint'] == "/v1/chat/completions":
+      
+        # add previous context to messages
+        json_data['messages'] = context.get_messages_history(st.session_state['system_content'])
     
     # other endpoints
     else:
-        system_content = system_content.replace('{prompt}', user_content)
+        system_content = st.session_state['system_content'].replace('{prompt}', user_content)
         json_data['prompt'] = system_content
-
+    
     # send json_data to endpoint
     try:
         s = requests.Session()
         headers = None
-        with s.post(config["api_url"] + endpoint,
+        with s.post(st.session_state["api_url"] + st.session_state['endpoint'],
             json=json_data,
             headers=headers,
-            stream=stream,
+            stream=st.session_state['stream'],
             timeout=240,
             verify=False
         ) as response:
           
             # if stream is True
-            if stream:
+            if st.session_state['stream']:
               
                 # store chunks into context
                 for chunk in response.iter_lines(chunk_size=None, decode_unicode=True):
@@ -97,7 +89,7 @@ def stop(endpoint, stop):
     # send stop request to endpoint
     try:
         requests.post(
-                config["api_url"] + endpoint,
+                st.session_state["api_url"] + endpoint,
                 json={"messages": stop[0]},
                 verify=False
             )
