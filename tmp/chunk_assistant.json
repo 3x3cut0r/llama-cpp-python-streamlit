@@ -1,9 +1,0 @@
-{
-  "id": "chatcmpl-42835b55-d8fe-4a98-a9f6-1b9ecb8e66e5",
-  "model": "/model/llama-2-7b-chat.Q2_K.gguf",
-  "created": 1698999278,
-  "object": "chat.completion.chunk",
-  "choices": [
-    { "index": 0, "delta": { "role": "assistant" }, "finish_reason": null }
-  ]
-}
