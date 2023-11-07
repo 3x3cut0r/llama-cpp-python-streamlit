@@ -2,6 +2,8 @@
 
 **A streamlit app for using a llama-cpp-python high level api**
 
+![llama-cpp-python-streamlit](https://github.com/3x3cut0r/llama-cpp-python-streamlit/assets/1408580/ac6e88eb-0588-4d4f-bfc9-9e014357282c)
+
 ## Index
 
 1. [Installation](#install)
