@@ -2,7 +2,7 @@
 
 **A streamlit app for using a llama-cpp-python high level api**
 
-![llama-cpp-python-streamlit](https://github.com/3x3cut0r/llama-cpp-python-streamlit/assets/1408580/8c98b205-e003-4e93-82d7-37f29608a4c9)
+![llama-cpp-python-streamlit](https://github.com/3x3cut0r/llama-cpp-python-streamlit/assets/1408580/b22fa516-2f32-4d16-a9f2-429eee2a6f50)
 
 ## Index
 
