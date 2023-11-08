@@ -30,8 +30,29 @@ def logo():
                 padding-left: 0px;
             }}
             
-            [data-testid="stMarkdownContainer"] p {{
+            [data-testid="stMarkdownContainer"] {{
                 font-weight: normal;
+            }}
+            
+            [data-testid="stMarkdown"] p,
+            [data-testid="stMarkdown"] ol {{
+                background-color: #444654;
+                color: #ced2d8;
+                margin: 0px;
+                padding: 20px;
+            }}
+            
+            [data-testid="stMarkdown"] [data-testid="stCodeBlock"] {{
+                background-color: #444654;
+                color: #ced2d8;
+                margin: 0px;
+                padding-left: 10px;
+                padding-right: 10px;
+            }}
+            
+            [data-testid="stCodeBlock"] {{
+                margin: 0px;
+                padding-left: 10px;
             }}
         </style>
         """,
@@ -55,8 +76,9 @@ def render(page_title = None):
         layout='wide',
         initial_sidebar_state='expanded',
     )
-
+    
     # logo
     logo()
     
+    # title
     st.title(page_title)

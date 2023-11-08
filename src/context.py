@@ -1,6 +1,6 @@
 from datetime import datetime
 import streamlit as st
-    
+  
 # render context in app
 def render(container): # container = st.container()
     container.empty()
@@ -13,16 +13,7 @@ def render(container): # container = st.container()
                 if 'question' in element:
                     q = element['question']
                     st.markdown(
-                        f"""
-                        <p style="
-                            background-color: #343541;
-                            color: #ececf1;
-                            margin: 0px;
-                            padding: 20px;
-                        ">
-                            {q}
-                        </p>
-                        """,
+                        f"""<p style="background-color: #343541; color: #ececf1; margin: 0px; padding: 20px;">{q}</p>""",
                         unsafe_allow_html=True,
                     )
 
@@ -33,36 +24,12 @@ def render(container): # container = st.container()
                     if 'message' in element['choices'][0]:
                         if 'content' in element['choices'][0]['message']:
                             c = element['choices'][0]['message']['content']
-                            st.markdown(
-                                f"""
-                                <p style="
-                                    background-color: #444654;
-                                    color: #ced2d8;
-                                    margin: 0px;
-                                    padding: 20px;
-                                ">
-                                    {c}
-                                </p>
-                                """,
-                                unsafe_allow_html=True,
-                            )
+                            st.markdown(c)
                     
                     # if /v1/completions entpoint
                     elif 'text' in element['choices'][0]:
                         c = element['choices'][0]['text']
-                        st.markdown(
-                            f"""
-                            <p style="
-                                background-color: #444654;
-                                color: #ced2d8;
-                                margin: 0px;
-                                padding: 20px;
-                            ">
-                                {c}
-                            </p>
-                            """,
-                            unsafe_allow_html=True,
-                        )
+                        st.markdown(c)
     
 # append user_content to context
 def append_question(user_content): # user_content = question = string
@@ -119,6 +86,7 @@ def append(ctx): # ctx = python dict
 
 # return message from context
 def get_message(ctx_element):
+    
     # if question
     if 'question' in ctx_element:
         return "User: " + ctx_element['question'] + "\n"
@@ -135,18 +103,18 @@ def get_message(ctx_element):
         elif 'text' in ctx_element['choices'][0]:
             return "System: " + ctx_element['choices'][0]['text'] + "\n"
 
-# return context history    
-def get_messages_history(system_content):
+# return context history
+def get_history():
     history = ""
     
     messages = [{
         "role": "system",
-        "content": system_content
+        "content": st.session_state['system_content']
     }]
     
     if st.session_state['context'] != []:
       
-        # if context is enabled
+        # if context is enabled return all elements
         if st.session_state['enable_context']:
             for ctx_element in st.session_state['context']:
                 history += get_message(ctx_element)
@@ -156,13 +124,17 @@ def get_messages_history(system_content):
             n_ctx = st.session_state['n_ctx']
             history = (history[-n_ctx:]) if len(history) >= n_ctx else history
                 
-        # if context is disabled
+        # if context is disabled return last element
         else:
             history += get_message(st.session_state['context'][-1])
 
+    # message dict for /v1/chat/completions endpoint
     messages.append({
         "role": "user",
         "content": history
     })
-    
-    return messages
+
+    if st.session_state['endpoint'] == "/v1/chat/completions":
+        return messages
+    else:
+        return st.session_state['prompt'].replace('{prompt}', history)

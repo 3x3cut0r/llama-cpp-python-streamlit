@@ -36,4 +36,4 @@ with st.form("Prompt Form", clear_on_submit=True):
         context.render(content_container)
         
         with st.spinner('Generating response...'):
-            request.send(user_content, content_container)
+            request.send(content_container)

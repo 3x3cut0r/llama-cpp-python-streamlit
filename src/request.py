@@ -7,7 +7,7 @@ import urllib3
 urllib3.disable_warnings()
 
 # send request to API
-def send(user_content, content_container):
+def send(content_container):
     
     # create static json_data for all requests
     json_data = {
@@ -25,12 +25,11 @@ def send(user_content, content_container):
     if st.session_state['endpoint'] == "/v1/chat/completions":
       
         # add previous context to messages
-        json_data['messages'] = context.get_messages_history(st.session_state['system_content'])
+        json_data['messages'] = context.get_history()
     
     # other endpoints
     else:
-        system_content = st.session_state['system_content'].replace('{prompt}', user_content)
-        json_data['prompt'] = system_content
+        json_data['prompt'] = context.get_history()
     
     # send json_data to endpoint
     try:
