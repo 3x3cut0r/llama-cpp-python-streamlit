@@ -48,8 +48,13 @@ def send(content_container):
               
                 # store chunks into context
                 for chunk in response.iter_lines(chunk_size=None, decode_unicode=True):
-                    if chunk:
-
+                    
+                    # fix error: Connection broken: InvalidChunkLength(got length b'', 0 bytes read)
+                    if chunk == b'':   
+                        continue
+                    
+                    # process chunk
+                    elif chunk:
                         # skip [DONE] message
                         if chunk.startswith("data: [DONE]"):
                             continue
@@ -66,7 +71,7 @@ def send(content_container):
                             context.append(chunk_dict)
                             context.render(content_container)
                         except json.JSONDecodeError:
-                            (f'invalid JSON-String: {chunk}')
+                            st.error(f'invalid JSON-String: {chunk}')
 
             # if stream is False
             else:
@@ -78,7 +83,7 @@ def send(content_container):
                     else:
                         raise Exception(f'Error: {response.text}')
                 except json.JSONDecodeError:
-                    (f'invalid JSON-String: {chunk}')
+                    st.error(f'invalid JSON-String: {chunk}')
 
     except Exception as e:
         st.error(str(e))
