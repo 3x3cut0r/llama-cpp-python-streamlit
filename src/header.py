@@ -2,62 +2,14 @@ import json
 import streamlit as st
 from PIL import Image
 favicon = Image.open('static/favicon.png')
+import src.logo as logo
+import src.styles as styles
+import src.session as session
+import src.sidebar as sidebar
 
 # load title from config-file
 with open("src/config.json", "r", encoding="utf-8") as file:
     config = json.load(file)
-
-# adds the logo to the sidebar
-def logo():
-
-    # render logo
-    st.markdown(
-        f"""
-        <style>
-            [data-testid="stSidebar"] {{
-                background-image: url(app/static/logo.png);
-                background-repeat: no-repeat;
-                background-position: 20px 20px;
-                background-size: auto 80px;
-            }}
-            
-            [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{
-                padding-top: 20px;
-            }}
-            
-            [data-testid="stForm"] {{
-                border: none;
-                padding-left: 0px;
-            }}
-            
-            [data-testid="stMarkdownContainer"] {{
-                font-weight: normal;
-            }}
-            
-            [data-testid="stMarkdown"] p,
-            [data-testid="stMarkdown"] ol {{
-                background-color: #444654;
-                color: #ced2d8;
-                margin: 0px;
-                padding: 20px;
-            }}
-            
-            [data-testid="stMarkdown"] [data-testid="stCodeBlock"] {{
-                background-color: #444654;
-                color: #ced2d8;
-                margin: 0px;
-                padding-left: 10px;
-                padding-right: 10px;
-            }}
-            
-            [data-testid="stCodeBlock"] {{
-                margin: 0px;
-                padding-left: 10px;
-            }}
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
 
 # call render method to set the header on every page
 def render(page_title = None):
@@ -77,8 +29,17 @@ def render(page_title = None):
         initial_sidebar_state='expanded',
     )
     
-    # logo
-    logo()
+    # render logo
+    logo.render()
     
+    # apply styles
+    styles.render()
+    
+    # load config
+    session.load()
+    
+    # render sidebar
+    sidebar.render()
+
     # title
     st.title(page_title)

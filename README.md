@@ -45,7 +45,13 @@ pip install -r requirements.txt
     "enable_context": "True",
     "stream": "True",
     "max_tokens": "256",
-    ...
+    "temperature": "0.2",
+    "top_p": "0.95",
+    "top_k": "40",
+    "repeat_penalty": "1.1",
+    "stop": "###",
+    "system_content": "User asks Questions to the AI. AI is helpful, kind, obedient, honest, and knows its own limits.",
+    "prompt": "### Instructions:\n{prompt}\n\n### Response:\n"
 }
 ```
 

@@ -10,6 +10,7 @@ def render(container): # container = st.container()
             for element in st.session_state['context']:
               
                 # if question
+                # todo: still vulnerable to code (html) injection, e.g.: <script> ... </script>
                 if 'question' in element:
                     q = element['question']
                     st.markdown(
